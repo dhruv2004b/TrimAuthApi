@@ -3,6 +3,7 @@ import sendOTP from '../utils/otpService.js';
 import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import sendSMS from '../utils/otpService.js';
 
 export const signup = async (req, res) => {
   const { name, email, phone, password } = req.body;
@@ -42,7 +43,9 @@ export const verifyOtp = async (req, res) => {
 };
 
 export const login = async (req, res) => {
-  const { phoneOrEmail, password } = req.body;
+  const { phoneOrEmail, password ,rememberMe} = req.body;
+
+
 
   try {
     const user = await User.findOne({
@@ -54,10 +57,42 @@ export const login = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: rememberMe ? '30d' : '1d' });
 
     res.status(200).json({ message: 'Login successful', token });
   } catch (error) {
     res.status(500).json({ message: 'Login failed' });
+  }
+};
+
+
+// resendOtp
+export const resendOtp = async (req, res) => {
+  const { phone } = req.body;
+
+  if (!phone) {
+    return res.status(400).json({ message: 'Phone number is required' });
+  }
+
+  try {
+    const otpData = await sendSMS(phone); // API call to 2Factor
+    const existingOtp = await Otp.findOne({ phone });
+
+    if (existingOtp) {
+      existingOtp.otp = otpData.otp;
+      existingOtp.otpId = otpData.otpId;
+      existingOtp.createdAt = new Date();
+      await existingOtp.save();
+    } else {
+      await Otp.create({
+        phone,
+        otp: otpData.otp,
+        otpId: otpData.otpId,
+      });
+    }
+
+    res.status(200).json({ message: 'OTP resent successfully', otp: otpData.otp });
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to resend OTP', error: error.message });
   }
 };
