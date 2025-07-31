@@ -1,11 +1,9 @@
 import express from 'express';
-import { signup, verifyOtp, login, resendOtp } from '../controllers/authController.js'; // ← ADD resendOtp
+import { signupUser, loginUser } from '../controllers/authController.js';
 
 const router = express.Router();
 
-router.post('/signup', signup);
-router.post('/verify-otp', verifyOtp);
-router.post('/login', login);
-router.post('/resend-otp', resendOtp); // ← ADD this route
+router.post('/signup', signupUser);
+router.post('/login', loginUser);
 
 export default router;
