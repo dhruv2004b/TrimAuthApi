@@ -5,6 +5,8 @@ import authRoutes from './routes/authRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import connectDB from './config/db.js';
 import salonRoutes from "./routes/salonRoutes.js";
+import timeslotRoutes from "./routes/timeslotRoutes.js";
+
 
 dotenv.config();
 
@@ -20,6 +22,7 @@ connectDB();
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use("/api/salons", salonRoutes);
+app.use("/api/salons", timeslotRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
